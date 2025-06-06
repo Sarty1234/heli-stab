@@ -1,1 +1,3 @@
 Increase thrust change speed
+Create separate thread for while cycle
+Add some ui to application

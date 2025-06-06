@@ -58,10 +58,10 @@ namespace heli_stab
             bool IsWorking = false;
 
             // Declaration of targets to be acomplished
-            int targetPitch = 0;
-            int tartgetRoll = 0;
+            double targetPitch = 0;
+            double tartgetRoll = 0;
             int targetThrust = 45;
-            double threshold = 1;
+            double threshold = 0.2;
 
             // App infinite cycle
             while (true)
@@ -70,13 +70,27 @@ namespace heli_stab
                 {
                     time = DateTime.Now;
 
+                    IsWorking = false;
+                    targetPitch = 0;
+                    targetThrust = 45;
+
                     if (Keyboard.IsKeyDown(Key.NumPad1))
                     {
                         IsWorking = true;
                     }
-                    else
+
+                    if (Keyboard.IsKeyDown(Key.NumPad2))
                     {
-                        IsWorking = false;
+                        IsWorking = true;
+                        targetPitch = 5;
+                        targetThrust = 30;
+                    }
+
+                    if (Keyboard.IsKeyDown(Key.NumPad3))
+                    {
+                        IsWorking = true;
+                        targetPitch = -8.9;
+                        targetThrust = 60;
                     }
 
                     if (!IsWorking) continue;  // Check if key is pressed for app to work
@@ -86,13 +100,6 @@ namespace heli_stab
                     MakeScreenshot();
                     rotation = rotationDetector.GetRotation(out thrust);
 
-                    if (Keyboard.IsKeyDown(Key.NumPad2))
-                    {
-                        targetPitch = 5;
-                    } else
-                    {
-                        targetPitch = 0;
-                    }
 
 
                     // Here it sets rotation speed for Roll based on how much is left to target rotation
@@ -101,86 +108,62 @@ namespace heli_stab
                     else if (tartgetRoll + rotation.X > 8 || tartgetRoll + rotation.X < -8) rollTime = 10;
 
                     // Here it sets rotation speed for Pitch based on how much is left to target rotation
-                    if (targetPitch + rotation.Y > 2 || targetPitch + rotation.Y < -2) pitchTime = 2;
-                    else if (targetPitch + rotation.Y > 5 || targetPitch + rotation.Y < -5) pitchTime = 10;
-                    else if (targetPitch + rotation.Y > 8 || targetPitch + rotation.Y < -8) pitchTime = 20;
+                    if (targetPitch + rotation.Y > 2 || targetPitch + rotation.Y < -2) pitchTime = 10;
+                    else if (targetPitch + rotation.Y > 5 || targetPitch + rotation.Y < -5) pitchTime = 20;
+                    else if (targetPitch + rotation.Y > 8 || targetPitch + rotation.Y < -8) pitchTime = 40;
 
                     // Here it sets change speed for Thrust based on how much is left to target thrust
                     if (targetThrust - thrust > 2 || targetThrust - thrust < -2) thrustTime = 50;
-                    else if (targetThrust - thrust > 5 || targetThrust - thrust < -5) thrustTime = 100;
-                    else if (targetThrust - thrust > 8 || targetThrust - thrust < -8) thrustTime = 160;
+                    if (targetThrust - thrust > 5 || targetThrust - thrust < -5) thrustTime = 100;
+                    if (targetThrust - thrust > 8 || targetThrust - thrust < -8) thrustTime = 160;
 
 
 
                     // Here it rotates Roll
                     if (tartgetRoll + rotation.X > threshold)
                     {
-                        keybd_event(VK_RollLeft, 0, 0, IntPtr.Zero);
-
-                        Thread.Sleep(rollTime);
-
-                        keybd_event(VK_RollLeft, 0, 2, IntPtr.Zero);
-
-                        Console.Beep(2000, 50);
+                        PressKey(rollTime, VK_RollLeft);
                     }
                     else if (tartgetRoll + rotation.X < -threshold)
                     {
-                        keybd_event(VK_RollRight, 0, 0, IntPtr.Zero);
-
-                        Thread.Sleep(rollTime);
-
-                        keybd_event(VK_RollRight, 0, 2, IntPtr.Zero);
-
-                        Console.Beep(2000, 50);
+                        PressKey(rollTime, VK_RollRight);
                     }
 
 
                     // Here it rotates Pitch
                     if (targetPitch + rotation.Y > threshold)
                     {
-                        keybd_event(VK_PitchForward, 0, 0, IntPtr.Zero);
-
-                        Thread.Sleep(pitchTime);
-
-                        keybd_event(VK_PitchForward, 0, 2, IntPtr.Zero);
-
-                        Console.Beep(2000, 50);
+                        PressKey(pitchTime, VK_PitchForward);
                     }
                     else if (targetPitch + rotation.Y < -threshold)
                     {
-                        keybd_event(VK_PitchBackward, 0, 0, IntPtr.Zero);
-
-                        Thread.Sleep(pitchTime);
-
-                        keybd_event(VK_PitchBackward, 0, 2, IntPtr.Zero);
-
-                        Console.Beep(2000, 50);
+                        PressKey(pitchTime, VK_PitchBackward);
                     }
 
 
                     // Here it changes Thrust
                     if (targetThrust - thrust > threshold)
                     {
-                        keybd_event(VK_IncreaseThrust, 0, 0, IntPtr.Zero);
-
-                        Thread.Sleep(thrustTime);
-
-                        keybd_event(VK_IncreaseThrust, 0, 2, IntPtr.Zero);
-
-                        Console.Beep(2000, 50);
+                        PressKey(thrustTime, VK_IncreaseThrust);
                     }
                     else if (targetThrust - thrust < -threshold)
                     {
-                        keybd_event(VK_DecreaseThrust, 0, 0, IntPtr.Zero);
-
-                        Thread.Sleep(thrustTime);
-
-                        keybd_event(VK_DecreaseThrust, 0, 2, IntPtr.Zero);
-
-                        Console.Beep(2000, 50);
+                        PressKey(thrustTime, VK_DecreaseThrust);
                     }
                 }
             }
+        }
+
+
+        private void PressKey(int time, byte Key)
+        {
+            keybd_event(Key, 0, 0, IntPtr.Zero);
+
+            Thread.Sleep(time);
+
+            keybd_event(Key, 0, 2, IntPtr.Zero);
+
+            Console.Beep(2000, 50);
         }
 
 
